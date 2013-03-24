@@ -8,6 +8,68 @@ from flask import abort, redirect, render_template, request, url_for, make_respo
 from melange import app, Item, Tag, Log
 from melange.auth import session_auth
 
+def update_variables(item, request):
+    if "var-add" in request.form:
+        var_key = request.form['var-key']
+        var_type = request.form['var-type']
+        if var_type == 'List':
+            item.set_variable(var_key, [''])
+        elif var_type == 'Map':
+            item.set_variable(var_key, {'':''})
+        else:
+            item.set_variable(var_key, '')
+        item.save()
+    elif "var-remove" in request.form:
+        k = request.form['var-key']
+        item.remove_variable(k)
+        item.save()
+    elif "var-text-save" in request.form:
+        k = request.form['var-key']
+        v = request.form['var-value']
+        item.set_variable(k, v)
+        item.save()
+    elif 'var-list-add' in request.form:
+        k = request.form['var-key']
+        v = item.variables[k]
+        v.append('')
+        item.set_variable(k, v)
+        item.save()
+    elif 'var-list-save' in request.form:
+        k = request.form['var-key']
+        item.set_variable(k, request.form.getlist('var-value[]'))
+        item.save()
+    elif 'var-list-remove' in request.form:
+        k = request.form['var-key']
+        items = item.variables[k]
+        to_remove = sorted([ int(index) for index in request.form.getlist('var-select[]') ], reverse=True)
+        for index in to_remove:
+            del items[index-1]
+        item.set_variable(k, items)
+        item.save()
+    elif 'var-map-add' in request.form:
+        key = request.form['var-key']
+        map = item.variables[key]
+        map[''] = ''
+        item.set_variable(key, map)
+        item.save()
+    elif 'var-map-save' in request.form:
+        key = request.form['var-key']
+        keys = request.form.getlist('var-value-key[]')
+        values = request.form.getlist('var-value-value[]')
+        map = {}
+        for k, v in zip(keys, values):
+            map[k] = v
+        item.set_variable(key, map)
+        item.save()
+    elif 'var-map-remove' in request.form:
+        key = request.form['var-key']
+        map = item.variables[key]
+        to_remove = request.form.getlist('var-select[]')
+        for k in to_remove:
+            del map[k]
+        item.set_variable(key, map)
+        item.save()
+
 @app.route("/")
 def show_frontpage():
     return render_template('front.html', tags=Tag.find_all())
@@ -33,66 +95,8 @@ def show_tag(name):
         if "tag-remove" in request.form:
             tag.remove()
             return redirect(url_for("list_tags"))
-        elif "var-add" in request.form:
-            var_key = request.form['var-key']
-            var_type = request.form['var-type']
-            if var_type == 'List':
-                tag.set_variable(var_key, [''])
-            elif var_type == 'Map':
-                tag.set_variable(var_key, {'':''})
-            else:
-                tag.set_variable(var_key, '')
-            tag.save()
-        elif "var-remove" in request.form:
-            k = request.form['var-key']
-            tag.remove_variable(k)
-            tag.save()
-        elif "var-text-save" in request.form:
-            k = request.form['var-key']
-            v = request.form['var-value']
-            tag.set_variable(k, v)
-            tag.save()
-        elif 'var-list-add' in request.form:
-            k = request.form['var-key']
-            v = tag.variables[k]
-            v.append('')
-            tag.set_variable(k, v)
-            tag.save()
-        elif 'var-list-save' in request.form:
-            k = request.form['var-key']
-            tag.set_variable(k, request.form.getlist('var-value[]'))
-            tag.save()
-        elif 'var-list-remove' in request.form:
-            k = request.form['var-key']
-            items = tag.variables[k]
-            to_remove = sorted([ int(index) for index in request.form.getlist('var-select[]') ], reverse=True)
-            for index in to_remove:
-                del items[index-1]
-            tag.set_variable(k, items)
-            tag.save()
-        elif 'var-map-add' in request.form:
-            key = request.form['var-key']
-            map = tag.variables[key]
-            map[''] = ''
-            tag.set_variable(key, map)
-            tag.save()
-        elif 'var-map-save' in request.form:
-            key = request.form['var-key']
-            keys = request.form.getlist('var-value-key[]')
-            values = request.form.getlist('var-value-value[]')
-            map = {}
-            for k, v in zip(keys, values):
-                map[k] = v
-            tag.set_variable(key, map)
-            tag.save()
-        elif 'var-map-remove' in request.form:
-            key = request.form['var-key']
-            map = tag.variables[key]
-            to_remove = request.form.getlist('var-select[]')
-            for k in to_remove:
-                del map[k]
-            tag.set_variable(key, map)
-            tag.save()
+        else:
+            update_variables(tag, request)
 
     var_list = []
     for k,v in tag.variables.items():

@@ -1,0 +1,63 @@
+{% macro varsmodel(var_list) %}
+<table>
+{% for variable in var_list|sort(attribute='key') %}
+    <tr>
+        <td>{{ variable.key }}
+{% if variable.type == 'Text' %}
+        <td>
+            <form method="POST"><input type="hidden" name="var-key" value="{{ variable.key }}">
+            <p><input name="var-value" value="{{ variable.value }}" size="50">
+               <input type="submit" name="var-text-save" value="Save">
+            </form>
+        </td>
+{% elif variable.type == 'List' %}
+        <td>
+            <form method="POST">
+            <ul>
+{% for item in variable.value %}
+                <li><input name="var-value[]" value="{{ item }}" size="50" placeholder="Value">
+                    <input type="checkbox" name="var-select[]" value="{{ loop.index }}">
+{% endfor %}
+            </ul>
+            <p>
+                <input type="hidden" name="var-key" value="{{ variable.key }}">
+                <input type="submit" name="var-list-add" value="Add">
+                <input type="submit" name="var-list-save" value="Save" >
+                <input type="submit" name="var-list-remove" value="Remove">
+            </form>
+        </td>
+{% elif variable.type == 'Map' %}
+        <td>
+            <form method="POST">
+            <ul>
+{% for k, v in variable.value|dictsort %}
+                <li><input name="var-value-key[]" value="{{ k }}" placeholder="Key">
+                :
+                <input name="var-value-value[]" value="{{ v }}" placeholder="Value">
+                <input type="checkbox" name="var-select[]" value="{{ k }}">
+{% endfor %}
+            </ul>
+            <p>
+                <input type="hidden" name="var-key" value="{{ variable.key }}">
+                <input type="submit" name="var-map-add" value="Add">
+                <input type="submit" name="var-map-save" value="Save" >
+                <input type="submit" name="var-map-remove" value="Remove">
+            </form>
+{% endif %}
+        <td>
+            <form method="POST"><input type="hidden" name="var-key" value="{{ variable.key }}"><input type="submit" name="var-remove" value="Remove"></form>
+        </td>
+{% endfor %}
+</table>
+
+<form method="POST">
+<p>
+    <input name="var-key" size="50" placeholder="New variable" required>
+    <select name="var-type">
+        <option>Text</option>
+        <option>List</option>
+        <option>Map</option>
+    </select>
+    <input type="submit" name="var-add" value="Add">
+</form>
+{% endmacro %}
