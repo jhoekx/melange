@@ -7,6 +7,7 @@ from passlib.hash import sha256_crypt
 from sqlalchemy import Column, ForeignKey, DateTime, Integer, String, Text, Table
 from sqlalchemy.orm import relationship
 
+from melange import MelangeException
 from melange.database import Base, db_session
 
 items_to_tags = Table('items_to_tags', Base.metadata,
@@ -104,6 +105,115 @@ class Item(Base, VariableMixin, CompatMixin, LogMixin):
         self.children.remove(child)
         self._log('Child %s removed'%(child.name))
 
+    def to_data(self, item_href=None, tag_href=None):
+        ''' Return a data representation of this Item.
+            The vars attribute shows the origin of the variable.'''
+        def tag_length(tag):
+            return len(tag.name)
+        def vars_sort(var):
+            return var['key']
+        data = {
+            'name': self.name,
+            'tags': [],
+            'children': [],
+        }
+        for tag in self.tags:
+            tag_data = {'name': tag.name}
+            if tag_href:
+                tag_data['href'] = tag_href(tag)
+            data['tags'].append(tag_data)
+        for child in self.children:
+            child_data = {'name': child.name}
+            if item_href:
+                child_data['href'] = item_href(child)
+            data['children'].append(child_data)
+        vars = []
+        var_keys = {}
+        for tag in sorted(self.tags, key=tag_length):
+            for k,v in tag.variables.items():
+                var = {
+                    'key': k,
+                    'value': v,
+                    'tag': tag.name
+                }
+                if tag_href:
+                    var['href'] = tag_href(tag)
+                if k in var_keys:
+                    vars.remove(var_keys[k])
+                else:
+                    var_keys[k] = var
+                vars.append(var)
+        for k, v in self.variables.items():
+            if k in var_keys:
+                vars.remove(var_keys[k])
+            vars.append({'key': k, 'value': v })
+        data['vars'] = sorted(vars, key=vars_sort)
+        return data
+
+    def update_from(self, data):
+        ### normalize variables
+        if type(data.get('vars', {}))==list:
+            vars = {}
+            own_vars = [ property for property in data['vars'] if 'tag' not in property ]
+            for property in data['vars']:
+                vars[property['key']] = property['value']
+            for property in own_vars:
+                vars[property['key']] = property['value']
+            data['vars'] = vars
+
+        ### tags
+        current_tags = [ tag.name for tag in self.tags ]
+        new_tags = [ tag['name'] for tag in data.get('tags', [])]
+        tags_to_add = set(new_tags) - set(current_tags)
+        tags_to_remove = set(current_tags) - set(new_tags)
+
+        for tag_name in tags_to_add:
+            tag = Tag.find(tag_name)
+            if not tag:
+                raise MelangeException("Tag '%s' not found"%(tag_name))
+            self.add_to(tag)
+
+        for tag_name in tags_to_remove:
+            tag = Tag.find(tag_name)
+            if tag:
+                self.remove_from(tag)
+
+        ### children
+        current_children = [ child.name for child in self.children ]
+        new_children = [ child['name'] for child in data.get('children', []) ]
+        children_to_add = set(new_children) - set(current_children)
+        children_to_remove = set(current_children) -  set(new_children)
+
+        for child_name in children_to_add:
+            child = Item.find(child_name)
+            if not child:
+                raise MelangeException("Child '%s' not found"%(child_name))
+            self.add_child(child)
+
+        for child_name in children_to_remove:
+            child = Item.find(child_name)
+            if child:
+                self.remove_child(child)
+
+        ### variables
+        current_variables = self.variables
+        all_variables = self.get_all_variables()
+        new_variables = data.get('vars', {})
+        for k,v in current_variables.items():
+            if k not in new_variables:
+                self.remove_variable(k)
+            ### check existing variables later on
+        for k,v in new_variables.items():
+            if k not in all_variables:
+                self.set_variable(k, v)
+            else:
+                if k in current_variables:
+                    if v != current_variables[k]:
+                        self.set_variable(k, v)
+                else:
+                    if v != all_variables[k]:
+                        self.set_variable(k, v)
+
 class Tag(Base, VariableMixin, CompatMixin, LogMixin):
     __tablename__ = 'tags'
 
@@ -116,6 +226,50 @@ class Tag(Base, VariableMixin, CompatMixin, LogMixin):
         self._log('Tag %s created'%(self.name))
     def __repr__(self):
         return "<Tag '%s'>"%(self.name)
+
+    def to_data(self, item_href=None):
+        data = {
+            'name': self.name,
+            'items': [],
+            'vars': self.variables,
+        }
+        for item in self.items:
+            item_data = {'name': item.name}
+            if item_href:
+                item_data['href'] = item_href(item)
+            data['items'].append(item_data)
+        return data
+
+    def update_from(self, data):
+        ### items
+        current_items = [ item.name for item in self.items ]
+        new_items = [ item['name'] for item in data.get('items', []) ]
+        items_to_add = set(new_items) - set(current_items)
+        items_to_remove = set(current_items) - set(new_items)
+
+        for item_name in items_to_add:
+            item = Item.find(item_name)
+            if not item:
+                raise MelangeException("Item '%s' not found"%(item_name))
+            item.add_to(self)
+        for item_name in items_to_remove:
+            item = Item.find(item_name)
+            if item:
+                item.remove_from(self)
+
+        ### variables
+        current_variables = self.variables
+        new_variables = data.get('vars', {})
+        for k,v in current_variables.items():
+            if k not in new_variables:
+                self.remove_variable(k)
+            else:
+                if v!=new_variables[k]:
+                    self.set_variable(k, new_variables[k])
+        for k,v in new_variables.items():
+            if k not in current_variables:
+                self.set_variable(k, v)
+            ### existing variables are already checked
 
 class User(Base, CompatMixin, LogMixin):
     __tablename__  = 'users'
