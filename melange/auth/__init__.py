@@ -79,7 +79,7 @@ def login():
         user_name = request.form['user-name']
         user_password = request.form['user-password']
         user = User.find(user_name)
-        if user.authenticate(user_password):
+        if user and user.authenticate(user_password):
             session['username'] = user_name
         return redirect(session['url'])
     return render_template('login.html')
