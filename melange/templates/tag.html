@@ -1,8 +1,6 @@
 {% extends "melange.html" %}
 {% block title %}{{ tag.name }}{% endblock %}
 {% block head %}
-<script src="/static/knockout-2.2.1.js"></script>
-<script src="/static/varsmodel.js"></script>
 <link rel="stylesheet" href="/static/varsmodel.css">
 
 <style>
@@ -43,31 +41,69 @@
 </div>
 
 <h2>Properties</h2>
-<div id="var-editor" data-model="{{ url_for('melange_api.show_tag',name=tag.name) }}">
+<div id="var-editor">
 <table>
-<tbody data-bind="foreach: variables">
-<tr>
-    <td><input data-bind="value: key">
-    <td class="var-value">
-        <!-- ko if: type()==="text" --><input size="50" data-bind="value: value"> <!-- /ko -->
-        <!-- ko if: type()==="list" -->
-        <ul data-bind="foreach: value">
-            <li><input size="50" data-bind="value: $data.value"> <input type="submit" value="x" data-bind="click: $parent.removeListValue"></li>
-        </ul>
-        <p><input type="submit" value="Add" data-bind="click: addListValue"></p>
-        <!-- /ko -->
-        <!-- ko if: type()==="map" -->
-        <ul data-bind="foreach: value">
-            <li><input data-bind="value: k"> : <input size="50" data-bind="value: v"> <input type="submit" value="x" data-bind="click: $parent.removeMapValue"></li>
-        </ul>
-        <p><input type="submit" value="Add" data-bind="click: addMapValue"></p>
-        <!-- /ko -->
-    <td><input type="submit" value="X" data-bind="click: $parent.removeVar">
-</tr>
-</tbody>
+{% for variable in var_list|sort(attribute='key') %}
+    <tr>
+        <td>{{ variable.key }}
+{% if variable.type == 'Text' %}
+        <td>
+            <form method="POST"><input type="hidden" name="var-key" value="{{ variable.key }}">
+            <p><input name="var-value" value="{{ variable.value }}" size="50">
+               <input type="submit" name="var-text-save" value="Save">
+            </form>
+        </td>
+{% elif variable.type == 'List' %}
+        <td>
+            <form method="POST">
+            <ul>
+{% for item in variable.value %}
+                <li><input name="var-value[]" value="{{ item }}" size="50" placeholder="Value">
+                    <input type="checkbox" name="var-select[]" value="{{ loop.index }}">
+{% endfor %}
+            </ul>
+            <p>
+                <input type="hidden" name="var-key" value="{{ variable.key }}">
+                <input type="submit" name="var-list-add" value="Add">
+                <input type="submit" name="var-list-save" value="Save" >
+                <input type="submit" name="var-list-remove" value="Remove">
+            </form>
+        </td>
+{% elif variable.type == 'Map' %}
+        <td>
+            <form method="POST">
+            <ul>
+{% for k, v in variable.value|dictsort %}
+                <li><input name="var-value-key[]" value="{{ k }}" placeholder="Key">
+                :
+                <input name="var-value-value[]" value="{{ v }}" placeholder="Value">
+                <input type="checkbox" name="var-select[]" value="{{ k }}">
+{% endfor %}
+            </ul>
+            <p>
+                <input type="hidden" name="var-key" value="{{ variable.key }}">
+                <input type="submit" name="var-map-add" value="Add">
+                <input type="submit" name="var-map-save" value="Save" >
+                <input type="submit" name="var-map-remove" value="Remove">
+            </form>
+{% endif %}
+        <td>
+            <form method="POST"><input type="hidden" name="var-key" value="{{ variable.key }}"><input type="submit" name="var-remove" value="Remove"></form>
+        </td>
+{% endfor %}
 </table>
-<p><select data-bind="options: types" id="variable-type"></select> <input type="submit" value="Add" data-bind="click: addVar"> 
-<p><input type="submit" value="Save" data-bind="click: save">
+
+<form method="POST">
+<p>
+    <input name="var-key" size="50" placeholder="New variable" required>
+    <select name="var-type">
+        <option>Text</option>
+        <option>List</option>
+        <option>Map</option>
+    </select>
+    <input type="submit" name="var-add" value="Add">
+</form>
+
 </div>
 
 <h2>Remove</h2>

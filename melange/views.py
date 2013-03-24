@@ -30,25 +30,84 @@ def show_tag(name):
     tag = Tag.find(name)
 
     if request.method == "POST":
-        if "var-add" in request.form or "var-update" in request.form:
-            k = request.form['var-key']
-            v = request.form['var-value']
-            try:
-                v = json.loads(v)
-            except:
-                pass
-            tag.set_var(k, v)
+        if "tag-remove" in request.form:
+            tag.remove()
+            return redirect(url_for("list_tags"))
+        elif "var-add" in request.form:
+            var_key = request.form['var-key']
+            var_type = request.form['var-type']
+            if var_type == 'List':
+                tag.set_variable(var_key, [''])
+            elif var_type == 'Map':
+                tag.set_variable(var_key, {'':''})
+            else:
+                tag.set_variable(var_key, '')
             tag.save()
         elif "var-remove" in request.form:
             k = request.form['var-key']
-            tag.remove_var(k)
+            tag.remove_variable(k)
             tag.save()
-        elif "tag-remove" in request.form:
-            tag.remove()
-            return redirect(url_for("list_tags"))
+        elif "var-text-save" in request.form:
+            k = request.form['var-key']
+            v = request.form['var-value']
+            tag.set_variable(k, v)
+            tag.save()
+        elif 'var-list-add' in request.form:
+            k = request.form['var-key']
+            v = tag.variables[k]
+            v.append('')
+            tag.set_variable(k, v)
+            tag.save()
+        elif 'var-list-save' in request.form:
+            k = request.form['var-key']
+            tag.set_variable(k, request.form.getlist('var-value[]'))
+            tag.save()
+        elif 'var-list-remove' in request.form:
+            k = request.form['var-key']
+            items = tag.variables[k]
+            to_remove = sorted([ int(index) for index in request.form.getlist('var-select[]') ], reverse=True)
+            for index in to_remove:
+                del items[index-1]
+            tag.set_variable(k, items)
+            tag.save()
+        elif 'var-map-add' in request.form:
+            key = request.form['var-key']
+            map = tag.variables[key]
+            map[''] = ''
+            tag.set_variable(key, map)
+            tag.save()
+        elif 'var-map-save' in request.form:
+            key = request.form['var-key']
+            keys = request.form.getlist('var-value-key[]')
+            values = request.form.getlist('var-value-value[]')
+            map = {}
+            for k, v in zip(keys, values):
+                map[k] = v
+            tag.set_variable(key, map)
+            tag.save()
+        elif 'var-map-remove' in request.form:
+            key = request.form['var-key']
+            map = tag.variables[key]
+            to_remove = request.form.getlist('var-select[]')
+            for k in to_remove:
+                del map[k]
+            tag.set_variable(key, map)
+            tag.save()
 
-    var_list = [ (k, json.dumps(v)) for k,v in tag.variables.items() ]
-    return render_template("tag.html", tag=tag, vars=var_list)
+    var_list = []
+    for k,v in tag.variables.items():
+        if type(v) in [str, unicode]:
+            var_type = 'Text'
+        elif type(v) == list:
+            var_type = 'List'
+        elif type(v) == dict:
+            var_type = 'Map'
+        var_list.append({
+            'key': k,
+            'value': v,
+            'type': var_type,
+        })
+    return render_template("tag.html", tag=tag, var_list=var_list)
 
 @app.route("/item/", methods=["GET", "POST"])
 @session_auth
