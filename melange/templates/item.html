@@ -1,8 +1,6 @@
 {% extends "melange.html" %}
 {% block title %}{{ item.name }}{% endblock %}
 {% block head %}
-<script src="/static/knockout-2.2.1.js"></script>
-<script src="/static/varsmodel.js"></script>
 <link rel="stylesheet" href="/static/varsmodel.css">
 <style>
 .tags {
@@ -120,50 +118,9 @@ h1 {
 </div>
 
 <h2>Properties</h2>
-<div id="var-editor" data-model="{{ url_for('melange_api.show_item',name=item.name) }}">
-<table>
-<tbody data-bind="foreach: variables">
-<tr>
-    <!-- ko if: origin -->
-    <td><span data-bind="text: key"></span></td>
-    <td class="var-value">
-        <!-- ko if: type()==="text" --><span data-bind="text: value"></span> <!-- /ko -->
-        <!-- ko if: type()==="list" -->
-        <ul data-bind="foreach: value">
-            <li data-bind="text: $data.value"></li>
-        </ul>
-        <!-- /ko -->
-        <!-- ko if: type()==="map" -->
-        <ul data-bind="foreach: value">
-            <li><span data-bind="text: k"></span> : <span data-bind="text: v"></span>
-        </ul>
-        <!-- /ko -->
-    </td>
-    <td><a class="var-origin" data-bind="attr: { href: origin.href, title: origin.tag }, text:origin.tag"></a></td>
-    <!-- /ko -->
-    <!-- ko if: !origin -->
-    <td><input data-bind="value: key"></td>
-    <td class="var-value">
-        <!-- ko if: type()==="text" --><input size="50" data-bind="value: value"> <!-- /ko -->
-        <!-- ko if: type()==="list" -->
-        <ul data-bind="foreach: value">
-            <li><input size="50" data-bind="value: $data.value"> <input type="submit" value="x" data-bind="click: $parent.removeListValue"></li>
-        </ul>
-        <p><input type="submit" value="Add" data-bind="click: addListValue"></p>
-        <!-- /ko -->
-        <!-- ko if: type()==="map" -->
-        <ul data-bind="foreach: value">
-            <li><input data-bind="value: k"> : <input size="50" data-bind="value: v"> <input type="submit" value="x" data-bind="click: $parent.removeMapValue"></li>
-        </ul>
-        <p><input type="submit" value="Add" data-bind="click: addMapValue"></p>
-        <!-- /ko -->
-    <td><input type="submit" value="X" data-bind="click: $parent.removeVar"></td>
-    <!-- /ko -->
-</tr>
-</tbody>
-</table>
-<p><select data-bind="options: types" id="variable-type"></select> <input type="submit" value="Add" data-bind="click: addVar"> 
-<p><input type="submit" value="Save" data-bind="click: save">
+<div id="var-editor">
+{% from 'varsmodel.html' import varsmodel %}
+{{ varsmodel(var_list) }}
 </div>
 
 <h2>Remove</h2>

@@ -138,20 +138,7 @@ def show_item(name):
         abort(404)
 
     if request.method in ["POST", "DELETE"]:
-        if "var-add" in request.form or "var-update" in request.form:
-            k = request.form['var-key']
-            v = request.form['var-value']
-            try:
-                v = json.loads(v)
-            except:
-                pass
-            item.set_var(k, v)
-            item.save()
-        elif "var-remove" in request.form:
-            k = request.form['var-key']
-            item.remove_var(k)
-            item.save()
-        elif "tag-add" in request.form:
+        if "tag-add" in request.form:
             tag_name = request.form['tag-name']
             tag = Tag.find(tag_name)
             item.add_to(tag)
@@ -174,13 +161,24 @@ def show_item(name):
         elif "item-remove" in request.form:
             item.remove()
             return redirect(url_for("list_tags"))
+        else:
+            update_variables(item, request)
 
-    var_list = [ (k, json.dumps(v)) for k,v in item.variables.items() ]
+    var_list = []
+    for var in item.to_data()['vars']:
+        v = var['value']
+        if type(v) in [str, unicode]:
+            var['type'] = 'Text'
+        elif type(v) == list:
+            var['type'] = 'List'
+        elif type(v) == dict:
+            var['type'] = 'Map'
+        var_list.append(var)
 
     tag_names = [ tag.name for tag in item.tags ]
     available_tags = [ tag.name for tag in Tag.find_all() if tag.name not in tag_names ]
 
-    return render_template('item.html', item=item, vars=var_list, available_tags=available_tags)
+    return render_template('item.html', item=item, var_list=var_list, available_tags=available_tags)
 
 @app.route('/log/')
 @session_auth

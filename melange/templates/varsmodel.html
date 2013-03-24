@@ -3,6 +3,26 @@
 {% for variable in var_list|sort(attribute='key') %}
     <tr>
         <td>{{ variable.key }}
+{% if variable.tag %}
+{% if variable.type == 'Text' %}
+        <td>{{ variable.value }}
+{% elif variable.type == 'List' %}
+        <td>
+            <ul>
+{% for item in variable.value %}
+                <li>{{ item }}
+{% endfor %}
+            </ul>
+{% elif variable.type == 'Map' %}
+        <td>
+            <ul>
+{% for k, v in variable.value|dictsort %}
+                <li>{{ k }} : {{ v }}
+{% endfor %}
+            </ul>
+{% endif %}
+        <td><a class="var-origin" href="{{ url_for('show_tag', name=variable.tag) }}">{{ variable.tag }}</a>
+{% else %}
 {% if variable.type == 'Text' %}
         <td>
             <form method="POST"><input type="hidden" name="var-key" value="{{ variable.key }}">
@@ -47,6 +67,7 @@
         <td>
             <form method="POST"><input type="hidden" name="var-key" value="{{ variable.key }}"><input type="submit" name="var-remove" value="Remove"></form>
         </td>
+{% endif %}
 {% endfor %}
 </table>
 
