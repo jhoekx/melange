@@ -1,4 +1,6 @@
 bin/
 include/
 lib/
+man/
 *.pyc
+melange.db
