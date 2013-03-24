@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>{% block title %} Unnamed {% endblock %} - Melange</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='melange.css') }}">
+{% block head %} {% endblock %}
+
+<ul id="main-nav">
+    <li><a href="{{ url_for('show_frontpage') }}">CMDB</a>
+    <li><a href="{{ url_for('list_tags') }}">Tags</a>
+    <li><a href="{{ url_for('user_auth.list_users') }}">Users</a>
+    <li><a href="{{ url_for('show_log') }}">Log</a>
+{% for menu_item in config.menu_items %}
+{% for k,v in menu_item.iteritems() %}
+    <li><a href="{{ url_for(v) }}">{{ k }}</a>
+{% endfor %}
+{% endfor %}
+</ul>
+
+{% block content %}
+<p>Hello World
+{% endblock %}

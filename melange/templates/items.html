@@ -1,0 +1,16 @@
+{% extends "melange.html" %}
+{% block title %}Items{% endblock %}
+{% block content %}
+
+<h1>Items</h1>
+
+<ul>
+{% for item in items|sort(attribute='name') %}
+    <li><a href="{{ url_for('show_item',name=item.name) }}">{{ item.name }}</a>
+{% endfor %}
+</ul>
+
+<form method="POST">
+<p><input type="text" name="item-name"> <input type="submit" name="item-add" value="Add">
+</form>
+{% endblock %}

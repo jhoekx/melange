@@ -1,0 +1,12 @@
+{% extends "melange.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+
+<h1>{{ user.name }}</h1>
+
+<form method="POST">
+<p><input type="password" name="user-password"> <input type="submit" name="change-password" value="Change password"></p>
+</form>
+
+<form method="POST"><p><input type="submit" name="remove-user" value="Remove"></p></form>
+{% endblock %}

@@ -1,0 +1,67 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4 {
+    margin: 1em 10px;
+    font-family: Verdana, Arial, sans-serif;
+}
+
+h1 {
+    color: #0099FF;
+    font-size: 3em;
+    text-shadow: 0.1em 0.1em 0.2em #ccc;
+}
+
+h2 {
+    color: #00BBFF;
+}
+
+#main-nav {
+    margin: 0;
+    padding-left: 1em;
+    background-color: black;
+    color: white;
+    font-family: Verdana, Arial, sans-serif;
+    font-weight: bold;
+}
+
+#main-nav > li {
+    list-style-type: none;
+    display: inline;
+}
+#main-nav > li > a {
+    display: inline-block;
+    padding: 0.4em 1em;
+    color: white;
+    text-decoration: none;
+}
+#main-nav > li > a:visited {
+    color: white;
+}
+#main-nav > li > a:hover {
+    background-color: white;
+    color: black;
+}
+
+p {
+    margin: 1em 10px;
+}
+
+ul {
+    margin: 1em 1em;
+}
+
+li p {
+    margin: 0;
+    padding: 0;
+}
+
+input[type=submit] {
+    padding: 0.3em;
+}
+
+li > form {
+    display: inline;
+}

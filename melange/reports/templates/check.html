@@ -1,0 +1,51 @@
+{% extends "melange.html" %}
+{% block title %}Reports - CMDB{% endblock %}
+{% block head %}
+<style>
+table {
+    margin: 1em;
+    border-collapse: collapse;
+}
+th, td {
+    text-align: left;
+    padding: 0 0.3em;
+}
+.check_result tr:nth-child(odd) {
+    background-color: #eee;
+}
+</style>
+{% endblock %}
+{% block content %}
+
+<h1>Reports</h1>
+
+<form method="GET">
+<table>
+    <tr>
+        <td>Tags to include:
+        <td><input name="check-tags" value="{{ tags|join(',') }}" size="40">
+    <tr>
+        <td>Variable name:
+        <td><input name="check-variable" value="{{ variable_name }}" size="40">
+    <tr>
+        <td>Condition:
+        <td><input name="check-condition" value="{{ condition }}" size="40">
+    <tr>
+        <td colspan="2"><input type="submit">
+</table>
+</form>
+
+{% if results %}
+<table class="check_result">
+    <tr>
+        <th>Item
+        <th>Variable
+{% for k, v in results|dictsort %}
+    <tr>
+        <td><a href="{{ url_for('show_item', name=k) }}">{{ k }}</a>
+        <td>{{ v }}
+{% endfor %}
+</table>
+{% endif %}
+
+{% endblock %}

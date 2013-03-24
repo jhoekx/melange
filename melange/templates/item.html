@@ -1,0 +1,173 @@
+{% extends "melange.html" %}
+{% block title %}{{ item.name }}{% endblock %}
+{% block head %}
+<script src="/static/knockout-2.2.1.js"></script>
+<script src="/static/varsmodel.js"></script>
+<link rel="stylesheet" href="/static/varsmodel.css">
+<style>
+.tags {
+    margin-left: 10px;
+}
+.tags li {
+    display: inline;
+    list-style-type: none;
+    padding: 0.5em 0.2em;
+}
+.tags a, .tags a:visited {
+    color: #00A000;
+    font-family: Verdana, arial, sans-serif;
+}
+.tags li:hover {
+    padding: 0.5em;
+    border-radius: 5px;
+    background-color: #00A000;
+}
+.tags li:hover a {
+    color: #FFFFFF;
+    text-decoration: none;
+}
+
+.tags li input[type=submit] {
+    display: none;
+}
+.tags li:hover input[type=submit] {
+    display: inline;
+}
+
+.tags li.add-tag input[type=submit] {
+    display: inline;
+}
+.tags li.add-tag select {
+    display: none;
+}
+.tags li.add-tag select:focus {
+    display: inline;
+}
+.tags li.add-tag:hover select {
+    display: inline;
+}
+
+h1 {
+    margin-top: 0.5em;
+}
+
+.children {
+    float: right;
+}
+.children h2:first-of-type {
+    margin-top: 0;
+}
+.children li {
+    list-style-type: none;
+    background-color: #ccc;
+    border: 1px solid #aaa;
+    margin:0.5em;
+    padding: 0.2em;
+}
+.children a {
+    line-height: 160%;
+}
+.children li input[type=submit] {
+    display: none;
+}
+.children li:hover input[type=submit] {
+    display: inline;
+}
+.children li.add-child input[type=submit] {
+    display: inline;
+}
+</style>
+{% endblock %}
+{% block content %}
+
+<ul class="tags">
+{% for tag in item.tags|sort(attribute='name') %}
+    <li><form method="POST"><input type="hidden" name="tag-name" value="{{ tag.name }}"><a href="{{ url_for('show_tag',name=tag.name) }}">{{ tag.name }}</a> <input type="submit" name="tag-remove" value="Remove"></form>
+{% endfor %}
+    <li class="add-tag">
+        <form method="POST">
+        <select name="tag-name">
+        {% for tag in available_tags|sort %}
+        <option>{{ tag }}</option>
+        {% endfor %}
+        </select><input type="submit" name="tag-add" value="Add">
+        </form>
+    </li>
+</ul>
+
+<h1>{{ item.name }}</h1>
+
+<div class="children">
+<h2>Parents</h2>
+<ul>
+{% for parent in item.parents|sort(attribute='name') %}
+    <li><a href="{{ url_for('show_item',name=parent.name) }}">{{ parent.name }}</a>
+{% endfor %}
+</ul>
+
+<h2>Children</h2>
+<ul>
+    <li class="add-child">
+        <form method="POST">
+            <input name="child-name" size="30"> <input type="submit" name="child-add" value="Add">
+        </form>
+    </li>
+{% for child in item.children|sort(attribute='name') %}
+    <li><form method="POST"><input type="hidden" name="child-name" value="{{ child.name }}"><a href="{{ url_for('show_item',name=child.name) }}">{{ child.name }}</a> <input type="submit" name="child-remove" value="Remove"></form>
+{% endfor %}
+</ul>
+
+</div>
+
+<h2>Properties</h2>
+<div id="var-editor" data-model="{{ url_for('melange_api.show_item',name=item.name) }}">
+<table>
+<tbody data-bind="foreach: variables">
+<tr>
+    <!-- ko if: origin -->
+    <td><span data-bind="text: key"></span></td>
+    <td class="var-value">
+        <!-- ko if: type()==="text" --><span data-bind="text: value"></span> <!-- /ko -->
+        <!-- ko if: type()==="list" -->
+        <ul data-bind="foreach: value">
+            <li data-bind="text: $data.value"></li>
+        </ul>
+        <!-- /ko -->
+        <!-- ko if: type()==="map" -->
+        <ul data-bind="foreach: value">
+            <li><span data-bind="text: k"></span> : <span data-bind="text: v"></span>
+        </ul>
+        <!-- /ko -->
+    </td>
+    <td><a class="var-origin" data-bind="attr: { href: origin.href, title: origin.tag }, text:origin.tag"></a></td>
+    <!-- /ko -->
+    <!-- ko if: !origin -->
+    <td><input data-bind="value: key"></td>
+    <td class="var-value">
+        <!-- ko if: type()==="text" --><input size="50" data-bind="value: value"> <!-- /ko -->
+        <!-- ko if: type()==="list" -->
+        <ul data-bind="foreach: value">
+            <li><input size="50" data-bind="value: $data.value"> <input type="submit" value="x" data-bind="click: $parent.removeListValue"></li>
+        </ul>
+        <p><input type="submit" value="Add" data-bind="click: addListValue"></p>
+        <!-- /ko -->
+        <!-- ko if: type()==="map" -->
+        <ul data-bind="foreach: value">
+            <li><input data-bind="value: k"> : <input size="50" data-bind="value: v"> <input type="submit" value="x" data-bind="click: $parent.removeMapValue"></li>
+        </ul>
+        <p><input type="submit" value="Add" data-bind="click: addMapValue"></p>
+        <!-- /ko -->
+    <td><input type="submit" value="X" data-bind="click: $parent.removeVar"></td>
+    <!-- /ko -->
+</tr>
+</tbody>
+</table>
+<p><select data-bind="options: types" id="variable-type"></select> <input type="submit" value="Add" data-bind="click: addVar"> 
+<p><input type="submit" value="Save" data-bind="click: save">
+</div>
+
+<h2>Remove</h2>
+<form method="POST">
+<p><input type="submit" name="item-remove" value="Remove {{ item.name }}">
+</form>
+{% endblock %}

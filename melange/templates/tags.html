@@ -1,0 +1,18 @@
+{% extends "melange.html" %}
+{% block title %}Tags{% endblock %}
+{% block content %}
+
+<h1>Tags</h1>
+
+<ul>
+{% for tag in tags|sort(attribute="name") %}
+    <li><a href="{{ url_for('show_tag',name=tag.name) }}">{{ tag.name }}</a>
+{% endfor %}
+</ul>
+
+{% if g.authenticated %}
+<form method="POST">
+<p><input name="tag-name" required> <input type="submit" name="tag-add" value="Add"></p>
+</form>
+{% endif %}
+{% endblock %}

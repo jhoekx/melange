@@ -1,0 +1,63 @@
+{% extends "melange.html" %}
+{% block title %}CMDB{% endblock %}
+{% block header %}CMDB{% endblock %}
+{% block head %}
+<script>
+"use strict";
+
+window.addEventListener("load", function (ev) {
+    if (!document.querySelectorAll) { return; }
+
+    var max_count = 0;
+    var max_size = 4;
+    var min_size = 1;
+
+    var tags = document.querySelectorAll(".tagcloud > li > a");
+    for (var i=0; i<tags.length; i++) {
+        var tag = tags[i];
+        var count = parseInt(tag.getAttribute("data-count")||0, 10);
+        if (count > max_count) {
+            max_count = count;
+        }
+    }
+
+    for (var i=0; i<tags.length; i++) {
+        var tag = tags[i];
+        var count = parseInt(tag.getAttribute("data-count")||0, 10);
+
+        var size = count*max_size/max_count;
+        if (size < min_size) {
+            size = min_size;
+        }
+
+        tag.style.fontSize = size+"em";
+    }
+}, false);
+</script>
+<style>
+.tagcloud > li {
+    list-style-type: none;
+    display: inline-block;
+    padding: 1em;
+    margin: 0 0.2em;
+    font-family: Verdana, arial, sans-serif;
+    font-weight: bold;
+    background-color: #ccc;
+    border: 1px solid #aaa;
+    border-radius: 10px;
+}
+.tagcloud a, .tagcloud a:visited {
+    color: #0099FF;
+}
+.tagcloud a:hover {
+    text-decoration: none;
+}
+</style>
+{% endblock %}
+{% block content %}
+<ul class="tagcloud">
+{% for tag in tags|sort(attribute="name") %}
+    <li><a href="{{ url_for('show_tag',name=tag.name) }}" data-count="{{ tag.items|count }}">{{ tag.name }}</a>
+{% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "melange.html" %}
+{% block title %}Log - CMDB{% endblock %}
+{% block head %}
+<style>
+.log {
+    margin-left: 0.5em;
+    border-collapse: collapse;
+}
+.log tr:nth-child(odd) {
+    background-color: #eee;
+}
+.log td {
+    padding: 0.2em;
+}
+</style>
+{% endblock %}
+{% block content %}
+
+<h1>Log</h1>
+
+<form>
+<p>Start: <input type="date" name="log-start" value="{{ start|localtimeformatdate }}">
+   End: <input type="date" name="log-end" value="{{ end|localtimeformatdate }}">
+   <input type="submit" value="Filter">
+</form>
+
+<table class="log">
+    <tr>
+        <th>Time
+        <th>Item
+        <th>Action
+{% for entry in log %}
+    <tr>
+        <td>{{ entry.date|localtimeformat }}
+        <td>{{ entry.name }}
+        <td>{{ entry.message }}
+{% endfor %}
+</table>
+
+
+{% endblock %}
