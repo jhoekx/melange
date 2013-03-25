@@ -1,9 +1,11 @@
-= Melange
+Melange
+=======
 
 A simple Configuration Management Database with plugin framework to show your
 favourite tools in one central place.
 
-== Getting Started
+Getting Started
+---------------
 
 Melange runs in development mode using SQLite by default.
 
@@ -22,7 +24,9 @@ $ python runserver.py &
 Melange is now listening on http://localhost:5000/ .
 Username: 'admin', password 'admin'.
 
-== Configuration
+Configuration
+-------------
+
 Other databases are supported. A production config looks like this:
 
 ```python
