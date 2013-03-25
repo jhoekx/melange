@@ -57,16 +57,19 @@ class MelangeTestCase(unittest.TestCase):
         assert laptop.name == 'laptop'
 
     def test_api_create_item(self):
+        Tag('laptop').save()
         data = {
-            'name': 'fireflash'
+            'name': 'fireflash',
         }
         with app.test_client() as c:
-            rv = self.post_json(c, '/api/item/', data)
+            rv = self.post_json(c, '/api/tag/laptop/', data)
             print rv
             assert rv.status_code == 201
         fireflash = Item.find('fireflash')
         assert fireflash is not None
         assert fireflash.name == 'fireflash'
+        assert len(fireflash.tags) == 1
+        assert fireflash.tags[0].name == 'laptop'
 
     def test_api_add_tag(self):
         Item('fireflash').save()

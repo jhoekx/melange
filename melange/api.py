@@ -12,33 +12,6 @@ melange_api = Blueprint('melange_api', __name__)
 def start():
     return redirect(url_for('melange_api.list_tags'))
 
-@melange_api.route('/item/', methods=['GET', 'POST'])
-@session_auth_test
-@basic_auth
-def list_items():
-    if request.method == 'POST':
-        if not request.json:
-            abort(415)
-        data = request.json
-        if not 'name' in data:
-            abort(400)
-        if Item.find(data['name']):
-            abort(409)
-        item = Item(data['name'])
-        try:
-            item.update_from(data)
-        except MelangeException:
-            abort(400)
-        item.save()
-        response = make_response('', 201)
-        response.headers['Content-Location'] = url_for('melange_api.show_item',name=item.name)
-        return response
-    items = [ {'name':item.name, 'href':url_for('melange_api.show_item', name=item.name)} for item in Item.find_all() ]
-
-    response = make_response( json.dumps(items), 200 )
-    response.headers['Content-Type'] = 'application/json'
-    return response
-
 @melange_api.route('/item/<name>/', methods=['GET', 'PUT', 'DELETE'])
 @session_auth_test
 @basic_auth
@@ -101,13 +74,32 @@ def list_tags():
     response.headers['Content-Type'] = 'application/json'
     return response
 
-@melange_api.route('/tag/<name>/', methods=['GET', 'DELETE', 'PUT'])
+@melange_api.route('/tag/<name>/', methods=['GET', 'POST', 'DELETE', 'PUT'])
 @session_auth_test
 @basic_auth
 def show_tag(name):
     tag = Tag.find(name)
     if not tag:
         abort(404)
+
+    if request.method == 'POST':
+        if not request.json:
+            abort(415)
+        data = request.json
+        if not 'name' in data:
+            abort(400)
+        item = Item.find(data['name'])
+        if not item:
+            item = Item(data['name'])
+        try:
+            item.update_from(data)
+        except MelangeException:
+            abort(400)
+        item.add_to(tag)
+        item.save()
+        response = make_response('', 201)
+        response.headers['Content-Location'] = url_for('melange_api.show_item',name=item.name)
+        return response
 
     if request.method == 'DELETE':
         tag.remove()
