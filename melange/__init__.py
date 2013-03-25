@@ -8,7 +8,13 @@ class MelangeException(Exception):
     pass
 
 app = Flask('melange')
-app.config.from_object(os.environ.get('MELANGE_CONFIG_MODULE', 'melange.config.DevelopmentConfig'))
+app.config.from_object('melange.config.ProductionConfig')
+if 'MELANGE_CONFIG_MODULE' in os.environ:
+    app.config.from_object(os.environ.get('MELANGE_CONFIG_MODULE'))
+elif 'MELANGE_CONFIG_FILE' in os.environ:
+    app.config.from_envvar('MELANGE_CONFIG_FILE')
+else:
+    app.config.from_object('melange.config.DevelopmentConfig')
 
 from melange.database import db_session
 from melange.models import Item, Tag, User, Log

@@ -8,9 +8,6 @@ parser.add_option('-i', '--initdb', default=None, action='store_true', dest='ini
 parser.add_option('-d', '--dropdb', default=None, action='store_true', dest='dropdb')
 options, args = parser.parse_args()
 
-if 'MELANGE_CONFIG_MODULE' not in os.environ:
-    os.environ['MELANGE_CONFIG_MODULE'] = 'melange.config.DevelopmentConfig'
-
 if options.initdb:
     from melange.database import init_db
     print 'Initializing database'
