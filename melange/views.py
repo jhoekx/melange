@@ -100,7 +100,7 @@ def show_tag(name):
 
     var_list = []
     for k,v in tag.variables.items():
-        if type(v) in [str, unicode]:
+        if type(v) in [str, unicode, int]:
             var_type = 'Text'
         elif type(v) == list:
             var_type = 'List'
