@@ -88,16 +88,18 @@ def show_tag(name):
         data = request.json
         if not 'name' in data:
             abort(400)
+        response_code = 200
         item = Item.find(data['name'])
         if not item:
             item = Item(data['name'])
+            response_code = 201
         try:
             item.update_from(data)
         except MelangeException:
             abort(400)
         item.add_to(tag)
         item.save()
-        response = make_response('', 201)
+        response = make_response('', response_code)
         response.headers['Content-Location'] = url_for('melange_api.show_item',name=item.name)
         return response
 
