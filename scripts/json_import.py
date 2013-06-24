@@ -33,7 +33,7 @@ if r.status_code == 401:
     r = s.get(options.url)
 
 if r.status_code != 200:
-    error('Unable to reach API')
+    error('Unable to reach API: %s'%(r.status_code))
 if not r.json:
     error('No JSON returned. Make sure you connect to the API.')
 
