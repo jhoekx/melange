@@ -97,6 +97,8 @@ def tag_items():
     def item_url(item):
         return url_for('melange_api.show_item', name=item.name)
     tags = [tag.to_data(item_href=item_url) for tag in Tag.find_all()]
+    for tag in tags:
+        tag['href'] = url_for('melange_api.show_tag',name=tag['name'])
 
     response = make_response( json.dumps(tags), 200 )
     response.headers['Content-Type'] = 'application/json'
