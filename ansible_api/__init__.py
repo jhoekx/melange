@@ -59,7 +59,7 @@ def list_playbooks():
             'href': url_for('.show_playbook', name=playbook)
             })
     response = make_response(json.dumps(data), 200)
-    response.headers['Content-Type'] = 'text/plain'
+    response.headers['Content-Type'] = 'application/json'
     return response
 
 @app.route('/playbooks/<name>/', methods=['GET', 'POST'])
@@ -68,7 +68,7 @@ def show_playbook(name):
     playbook_path = os.path.abspath(app.config['ANSIBLE_PLAYBOOKS'])
     playbook = safe_join(playbook_path, '%s.yml'%(name))
 
-    return Response(run_playbook(playbook), mimetype='text/plain')
+    return Response(run_playbook(playbook), mimetype='application/json')
 
 @app.route('/modules/<module_name>/', methods=['GET', 'POST'])
 @basic_auth
@@ -79,5 +79,5 @@ def run_module(module_name):
     res = r.run()
 
     response = make_response(json.dumps(res), 200)
-    response.headers['Content-Type'] = 'text/plain'
+    response.headers['Content-Type'] = 'application/json'
     return response
