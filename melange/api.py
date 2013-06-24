@@ -90,6 +90,18 @@ def list_tags():
     response.headers['Content-Type'] = 'application/json'
     return response
 
+@melange_api.route('/tag_items/', methods=['GET'])
+@session_auth_test
+@basic_auth
+def tag_items():
+    def item_url(item):
+        return url_for('melange_api.show_item', name=item.name)
+    tags = [tag.to_data(item_href=item_url) for tag in Tag.find_all()]
+
+    response = make_response( json.dumps(tags), 200 )
+    response.headers['Content-Type'] = 'application/json'
+    return response
+
 @melange_api.route('/tag/<name>/', methods=['GET', 'POST', 'DELETE', 'PUT'])
 @session_auth_test
 @basic_auth
