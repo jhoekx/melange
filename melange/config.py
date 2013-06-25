@@ -31,8 +31,15 @@ class DevelopmentConfig(Config):
             'module': 'melange.reports',
             'blueprint': 'reports',
             'blueprint_url': '/reports',
-        }
+        },
+        {
+            'module': 'melange.updates',
+            'blueprint': 'updates',
+            'blueprint_url': '/updates',
+        },
     ]
+    ANSIBLE_URL = 'http://localhost:5001'
+    ANSIBLE_KEY = 'abcdefgh'
 
 class TestingConfig(Config):
     TESTING = True

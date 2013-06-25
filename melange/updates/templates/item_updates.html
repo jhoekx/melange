@@ -1,0 +1,126 @@
+<h2>Updates </h2>
+<div id="item-updates" class="not-loaded">
+<p><a href="{{ url_for('updates.list_updates', item_name=item.name) }}" id="item-updates-link">List updates</a> <a href="#" id="item-updates-link-all" class="only-loaded">Show all</a> <a href="#" id="item-updates-link-updates" class="only-loaded">Only updates</a>
+<table id="item-updates-list" class="only-loaded">
+    <thead>
+        <tr>
+            <th>Package <th>Version <th>Release <th colspan="2">Available
+    </thead>
+    <tbody></tbody>
+</table>
+</div>
+<style>
+#item-updates {
+    margin-left: 1em;
+}
+
+#item-updates.not-loaded .only-loaded {
+    display: none;
+}
+
+#item-updates.only-updates .no-update-available {
+    display: none;
+}
+
+#item-updates-list {
+    border-collapse: collapse;
+}
+#item-updates-list th {
+    text-align: left;
+    color: #00BBFF;
+}
+#item-updates-list tr:nth-child(2n+1) {
+    background-color: #EEEEEE;
+}
+
+#item-updates-list tr.update-available {
+    background-color: greenyellow;
+}
+#item-updates-list td{
+    padding: 0 0.2em;
+}
+</style>
+<script>
+"use strict";
+
+( function (scope) {
+
+var update_block = document.getElementById("item-updates");
+var update_link = document.getElementById("item-updates-link");
+var update_list = document.getElementById("item-updates-list");
+
+var create_row = function (cells) {
+    var row = document.createElement("tr");
+    cells.forEach( function (content) {
+        var cell = document.createElement("td");
+        cell.textContent = content;
+        row.appendChild(cell);
+    } );
+    return row;
+};
+
+var get_updates_dict = function (data) {
+    var updates = {};
+    data.forEach( function (software) {
+        updates[software.name] = {
+            "version": software.version,
+            "release": software.release
+        };
+    } );
+    return updates;
+};
+
+update_link.addEventListener("click", function (ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    update_block.className = "only-updates";
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", update_link.getAttribute("href"));
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            if (xhr.status !== 200 && xhr.status !== 304) {
+                alert("Failed to load: " + xhr.status + " -- "+ xhr.reponseText);
+            }
+            var data = JSON.parse(xhr.responseText);
+            var updates = get_updates_dict(data.updates);
+
+            var tbody = document.createElement("tbody");
+            data.installed.forEach( function (software) {
+                var row_data = [software.name, software.version, software.release];
+                if (updates[software.name]) {
+                    row_data.push(updates[software.name].version);
+                    row_data.push(updates[software.name].release);
+                }
+                var row = create_row(row_data);
+                if (updates[software.name]) {
+                    row.className = "update-available";
+                } else {
+                    row.className = "no-update-available";
+                }
+                tbody.appendChild(row);
+            } );
+
+            var old_tbody = update_list.getElementsByTagName("tbody")[0];
+            update_list.removeChild(old_tbody);
+            update_list.appendChild(tbody);
+        }
+    };
+    xhr.send("");
+}, false);
+
+document.getElementById("item-updates-link-all").addEventListener("click", function (ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    update_block.className = "";
+}, false);
+
+document.getElementById("item-updates-link-updates").addEventListener("click", function (ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    update_block.className = "only-updates";
+}, false);
+
+} )(window);
+</script>
