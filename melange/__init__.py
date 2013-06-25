@@ -50,6 +50,7 @@ def shutdown_session(exception=None):
 
 app.config['menu_items'] = []
 app.config['item_plugins'] = []
+app.config['tag_plugins'] = []
 
 for plugin_data in app.config.get('PLUGINS', []):
     plugin_module = importlib.import_module(plugin_data['module'])
@@ -62,3 +63,6 @@ for plugin_data in app.config.get('PLUGINS', []):
     if hasattr(plugin_module, 'item_plugin'):
         item_plugin = getattr(plugin_module, 'item_plugin')
         app.config['item_plugins'].append(item_plugin)
+    if hasattr(plugin_module, 'tag_plugin'):
+        tag_plugin = getattr(plugin_module, 'tag_plugin')
+        app.config['tag_plugins'].append(tag_plugin)

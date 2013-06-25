@@ -46,6 +46,10 @@
 {{ varsmodel(var_list) }}
 </div>
 
+{% for plugin in config.tag_plugins %}
+{{ plugin(tag)|safe }}
+{% endfor %}
+
 <h2>Remove</h2>
 <form method="POST">
 <p><input type="submit" name="tag-remove" value="Remove {{ tag.name }}">
