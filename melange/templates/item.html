@@ -123,6 +123,10 @@ h1 {
 {{ varsmodel(var_list) }}
 </div>
 
+{% for plugin in config.item_plugins %}
+{{ plugin(item)|safe }}
+{% endfor %}
+
 <h2>Remove</h2>
 <form method="POST">
 <p><input type="submit" name="item-remove" value="Remove {{ item.name }}">

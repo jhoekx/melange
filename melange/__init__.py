@@ -49,6 +49,7 @@ def shutdown_session(exception=None):
     db_session.close()
 
 app.config['menu_items'] = []
+app.config['item_plugins'] = []
 
 for plugin_data in app.config.get('PLUGINS', []):
     plugin_module = importlib.import_module(plugin_data['module'])
@@ -58,3 +59,6 @@ for plugin_data in app.config.get('PLUGINS', []):
     if hasattr(plugin_module, 'menu_items'):
         menu_items = getattr(plugin_module, 'menu_items')
         app.config['menu_items'].append(menu_items)
+    if hasattr(plugin_module, 'item_plugin'):
+        item_plugin = getattr(plugin_module, 'item_plugin')
+        app.config['item_plugins'].append(item_plugin)
