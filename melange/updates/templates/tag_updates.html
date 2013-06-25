@@ -1,0 +1,107 @@
+<h2>Updates </h2>
+<div id="tag-updates" class="not-loaded">
+<p><a href="{{ url_for('updates.list_updates', item_name=tag.name) }}" id="tag-updates-link">Show system overview</a>
+
+<table id="tag-updates-list" class="only-loaded">
+    <thead>
+        <tr>
+            <th>System <th>Installed <th>Updates
+    </thead>
+    <tbody></tbody>
+</table>
+
+</div>
+<style>
+#tag-updates {
+    margin-left: 1em;
+}
+
+#tag-updates.not-loaded .only-loaded {
+    display: none;
+}
+
+#tag-updates.only-updates .no-update-available {
+    display: none;
+}
+
+#tag-updates-list {
+    border-collapse: collapse;
+}
+#tag-updates-list th {
+    text-align: left;
+    color: #00BBFF;
+}
+#tag-updates-list tr:nth-child(2n+1) {
+    background-color: #EEEEEE;
+}
+
+#tag-updates-list tr.update-available {
+    background-color: greenyellow;
+}
+#tag-updates-list td, #tag-updates-list th {
+    padding: 0 0.2em;
+}
+</style>
+<script>
+"use strict";
+
+( function (scope) {
+
+var update_block = document.getElementById("tag-updates");
+var update_link = document.getElementById("tag-updates-link");
+var update_list = document.getElementById("tag-updates-list");
+
+var create_row = function (cells) {
+    var row = document.createElement("tr");
+    cells.forEach( function (content) {
+        var cell = document.createElement("td");
+        cell.textContent = content;
+        row.appendChild(cell);
+    } );
+    return row;
+};
+
+update_link.addEventListener("click", function (ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", update_link.getAttribute("href"));
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            if (xhr.status !== 200 && xhr.status !== 304) {
+                alert("Failed to load: " + xhr.status + " -- "+ xhr.reponseText);
+            }
+            var data = JSON.parse(xhr.responseText);
+
+            var items = [];
+            for ( var item in data) {
+                if (data.hasOwnProperty(item)) {
+                    items.push(item);
+                }
+            }
+
+            var tbody = document.createElement("tbody");
+            items.sort().forEach( function (item) {
+                var row_data = [item, data[item].installed.length, data[item].updates.length];
+                var row = create_row(row_data);
+                if (data[item].updates.length != 0) {
+                    row.className = "update-available";
+                } else {
+                    row.className = "no-update-available";
+                }
+                tbody.appendChild(row);
+            } );
+
+            update_block.className = "";
+
+            var old_tbody = update_list.getElementsByTagName("tbody")[0];
+            update_list.removeChild(old_tbody);
+            update_list.appendChild(tbody);
+        }
+    };
+    xhr.send("");
+}, false);
+
+} )(window);
+</script>

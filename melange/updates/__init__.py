@@ -30,8 +30,10 @@ from melange.auth import session_auth
 updates = Blueprint('updates', __name__, template_folder='templates')
 
 def item_plugin(item, *args):
-    val = render_template('item_updates.html', item=item)
-    return val
+    return render_template('item_updates.html', item=item)
+
+def tag_plugin(tag, *args):
+    return render_template('tag_updates.html', tag=tag)
 
 @updates.route('/api/<item_name>/')
 @session_auth
@@ -42,17 +44,7 @@ def list_updates(item_name):
     if r.status_code != 200:
         abort(400)
     data = r.json()
-    if item_name not in data['contacted']:
-        abort(400)
 
-    installed = data['contacted'][item_name]['installed']
-    updates = data['contacted'][item_name]['updates']
-
-    val = {
-        'installed': installed,
-        'updates': updates,
-    }
-
-    response = make_response(json.dumps(val), 200)
+    response = make_response(json.dumps(data['contacted']), 200)
     response.headers['Content-Type'] = 'application/json'
     return response
