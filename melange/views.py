@@ -183,7 +183,7 @@ def show_item(name):
     var_list = []
     for var in item.to_data()['vars']:
         v = var['value']
-        if type(v) in [str, unicode]:
+        if type(v) in [str, unicode, int]:
             var['type'] = 'Text'
         elif type(v) == list:
             var['type'] = 'List'
