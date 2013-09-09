@@ -1,4 +1,4 @@
-{% macro varsmodel(var_list) %}
+{% macro varsmodel(var_list, g=None) %}
 <table>
 {% for variable in var_list|sort(attribute='key') %}
     <tr>
@@ -26,7 +26,11 @@
 {% if variable.type == 'Text' %}
         <td>
             <form method="POST"><input type="hidden" name="var-key" value="{{ variable.key }}">
+{% if g and g.focus_variable and g.focus_variable == variable.key %}
+            <p><input name="var-value" value="{{ variable.value }}" size="50" autofocus>
+{% else %}
             <p><input name="var-value" value="{{ variable.value }}" size="50">
+{% endif%}
                <input type="submit" name="var-text-save" value="Save">
             </form>
         </td>
@@ -35,7 +39,12 @@
             <form method="POST">
             <ul>
 {% for item in variable.value %}
-                <li><input name="var-value[]" value="{{ item }}" size="50" placeholder="Value">
+                <li>
+{% if g and g.focus_variable and g.focus_variable == variable.key and not item %}
+                    <input name="var-value[]" value="{{ item }}" size="50" placeholder="Value" autofocus>
+{% else %}
+                    <input name="var-value[]" value="{{ item }}" size="50" placeholder="Value">
+{% endif %}
                     <input type="checkbox" name="var-select[]" value="{{ loop.index }}">
 {% endfor %}
             </ul>
@@ -51,7 +60,12 @@
             <form method="POST">
             <ul>
 {% for k, v in variable.value|dictsort %}
-                <li><input name="var-value-key[]" value="{{ k }}" placeholder="Key">
+                <li>
+{% if g and g.focus_variable and g.focus_variable == variable.key and not k %}
+                <input name="var-value-key[]" value="{{ k }}" placeholder="Key" autofocus>
+{% else %}
+                <input name="var-value-key[]" value="{{ k }}" placeholder="Key">
+{% endif %}
                 :
                 <input name="var-value-value[]" value="{{ v }}" placeholder="Value">
                 <input type="checkbox" name="var-select[]" value="{{ k }}">

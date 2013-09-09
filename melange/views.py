@@ -19,7 +19,7 @@ import json
 
 from datetime import datetime, timedelta
 
-from flask import abort, redirect, render_template, request, url_for, make_response
+from flask import abort, g, redirect, render_template, request, url_for, make_response
 
 from melange import app, Item, Tag, Log
 from melange.auth import session_auth
@@ -35,6 +35,7 @@ def update_variables(item, request):
         else:
             item.set_variable(var_key, '')
         item.save()
+        g.focus_variable = var_key
     elif "var-remove" in request.form:
         k = request.form['var-key']
         item.remove_variable(k)
@@ -50,6 +51,7 @@ def update_variables(item, request):
         v.append('')
         item.set_variable(k, v)
         item.save()
+        g.focus_variable = k
     elif 'var-list-save' in request.form:
         k = request.form['var-key']
         item.set_variable(k, request.form.getlist('var-value[]'))
@@ -68,6 +70,7 @@ def update_variables(item, request):
         map[''] = ''
         item.set_variable(key, map)
         item.save()
+        g.focus_variable = key
     elif 'var-map-save' in request.form:
         key = request.form['var-key']
         keys = request.form.getlist('var-value-key[]')

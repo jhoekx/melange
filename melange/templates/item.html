@@ -120,7 +120,7 @@ h1 {
 <h2>Properties</h2>
 <div id="var-editor">
 {% from 'varsmodel.html' import varsmodel %}
-{{ varsmodel(var_list) }}
+{{ varsmodel(var_list, g) }}
 </div>
 
 {% for plugin in config.item_plugins %}
