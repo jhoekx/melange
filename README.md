@@ -12,10 +12,11 @@ Melange runs in development mode using SQLite by default.
 Start the development version:
 
 ```bash
-$ git clone ...
+$ git clone https://github.com/jhoekx/melange.git
+$ cd melange/
 $ virtualenv2 .
 $ source bin/activate
-$ pip install < requirements.txt
+$ pip install -r requirements.txt
 $ nosetests tests/
 $ python runserver.py --initdb
 $ python runserver.py &
@@ -23,6 +24,17 @@ $ python runserver.py &
 
 Melange is now listening on http://localhost:5000/ .
 Username: 'admin', password 'admin'.
+
+Melange contains information about systems. Systems are grouped in tags. Both 
+systems and tags can define variables. System variables override tag variables.
+Tag variables of tags with longer names win in case of duplication.
+
+There is no tag hierarchy. That is by design. There is, however, a system (or
+item) hierarchy. Child items don't inherit variables from parent items.
+
+Browsing to the Melange server will initially show a blank screen with a menu 
+bar. Add a new tag by clicking on 'Tags' in the menu bar. You can create systems
+directly from the tag by adding them as a child.
 
 Configuration
 -------------
