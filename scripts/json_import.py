@@ -61,12 +61,15 @@ for tag_data in json_data['tags']:
 children_cache = {}
 for item_data in json_data['items']:
     first_tag_url = existing_tags[item_data['tags'][0]['name']]
-    children = item_data['children']
-    del item_data['children']
+    children = item_data.get('children', None)
+    if children is not None:
+        del item_data['children']
+
     r = s.post(first_tag_url, json.dumps(item_data))
     if r.status_code >= 400:
         error('Failed to create item <%s>'%(item_data['name']))
-    children_cache[r.headers['Content-Location']] = children
+    if children is not None:
+        children_cache[r.headers['Content-Location']] = children
 
 for url, children in children_cache.items():
     r = s.get(urljoin(entry_url, url))

@@ -25,6 +25,12 @@ $ python runserver.py &
 Melange is now listening on http://localhost:5000/ .
 Username: 'admin', password 'admin'.
 
+Optionally import example data:
+
+```bash
+$ python scripts/json_import.py --dest=http://localhost:5000/api/ --user=admin --password=admin < examples/example-data.json
+```
+
 Melange contains information about systems. Systems are grouped in tags. Both 
 systems and tags can define variables. System variables override tag variables.
 Tag variables of tags with longer names win in case of duplication.

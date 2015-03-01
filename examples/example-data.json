@@ -1,0 +1,25 @@
+{
+  "tags": [
+    {"name": "dc-1", "vars": {"dns_servers": ["192.168.122.1", "8.8.8.8"]}},
+    {"name": "production", "vars": {"gateway": "192.168.122.1"}},
+    {"name": "staging", "vars": {"gateway": "192.168.122.2"}},
+    {"name": "tomcat", "vars": {"java_version": "6"}}
+  ],
+  "items": [
+    {
+      "name": "host-a",
+      "tags": [{"name": "dc-1"}, {"name": "production"}, {"name": "tomcat"}],
+      "vars": {"prd": {"ip": "192.168.122.10"}}
+    },
+    {
+      "name": "host-b",
+      "tags": [{"name": "dc-1"}, {"name": "staging"}, {"name": "tomcat"}],
+      "vars": {}
+    },
+    {
+      "name": "host-c",
+      "tags": [{"name": "dc-1"}, {"name": "staging"}, {"name": "tomcat"}],
+      "vars": {"java_version": "7"}
+    }
+  ]
+}
