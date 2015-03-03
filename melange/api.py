@@ -100,7 +100,22 @@ def tag_items():
     for tag in tags:
         tag['href'] = url_for('melange_api.show_tag',name=tag['name'])
 
-    response = make_response( json.dumps(tags), 200 )
+    hostvars = {}
+
+    for item in Item.find_all():
+        item_data = item.to_data()
+        if 'vars' in item_data:
+            hostvars[item.name] = {}
+            for var in item_data['vars']:
+                hostvars[item.name][var['key']] = var['value']
+
+    result = {
+        "tags": tags,
+        "_meta": {
+            "hostvars": hostvars
+        }
+    }
+    response = make_response( json.dumps(result), 200 )
     response.headers['Content-Type'] = 'application/json'
     return response
 
