@@ -220,5 +220,53 @@ class MelangeTestCase(unittest.TestCase):
         assert fireflash.variables['test'] == 'two'
         assert fireflash.get_all_variables()['test'] == 'two'
 
+    def test_ansible_inventory(self):
+        fireflash = Item('fireflash')
+        linux = Tag('linux')
+        linux.set_variable('test', 'one')
+        fireflash.add_to(linux)
+        linux.save()
+
+        with app.test_client() as c:
+            rv = self.get_json(c, '/api/ansible_inventory/')
+            data = json.loads(rv.data)
+            assert rv.status_code == 200
+            print data
+            assert data == {
+                'linux': {'hosts': ['fireflash']},
+                '_meta': {'hostvars': {'fireflash': {'test': 'one'}}}
+            }
+
+    def test_ansible_inventory_default_tags(self):
+        fireflash = Item('fireflash')
+        mole = Item('mole')
+        fab1 = Item('fab1')
+        linux = Tag('linux')
+        ansible = Tag('ansible-managed')
+        windows = Tag('windows')
+        multiple = Tag('multiple')
+        fireflash.add_to(linux)
+        mole.add_to(ansible)
+        fab1.add_to(windows)
+        fireflash.add_to(multiple)
+        fab1.add_to(multiple)
+        linux.save()
+        ansible.save()
+        windows.save()
+        multiple.save()
+
+        with app.test_client() as c:
+            rv = self.get_json(c, '/api/ansible_inventory/')
+            data = json.loads(rv.data)
+            assert rv.status_code == 200
+            print data
+            assert data == {
+                'linux': {'hosts': ['fireflash']},
+                'ansible-managed': {'hosts': ['mole']},
+                'windows': {'hosts': []},
+                'multiple': {'hosts': ['fireflash']},
+                '_meta': {'hostvars': {'fireflash': {}, 'mole': {}}}
+            }
+
 if __name__ == '__main__':
     unittest.main()

@@ -24,6 +24,11 @@ from melange.auth import basic_auth, session_auth_test
 
 melange_api = Blueprint('melange_api', __name__)
 
+def json_response(data):
+    response = make_response(json.dumps(data), 200)
+    response.headers['Content-Type'] = 'application/json'
+    return response
+
 @melange_api.route('/', methods=['GET'])
 def start():
     return redirect(url_for('melange_api.list_tags'))
@@ -103,6 +108,38 @@ def tag_items():
     response = make_response( json.dumps(tags), 200 )
     response.headers['Content-Type'] = 'application/json'
     return response
+
+def keep_only(groups, data):
+    ansible_data = {'_meta': {'hostvars': {}}}
+    keep = []
+    for keep_group in groups:
+        if keep_group in data:
+            keep.extend([host for host in data[keep_group]['hosts']])
+    for group, group_def in data.items():
+        if group == '_meta':
+            continue
+        hosts = group_def['hosts']
+        ansible_data[group] = {'hosts': [host for host in hosts if host in keep]}
+    for item, vars in data['_meta']['hostvars'].items():
+        if item in keep:
+            ansible_data['_meta']['hostvars'][item] = vars
+    return ansible_data
+
+@melange_api.route('/ansible_inventory/', methods=['GET'])
+@session_auth_test
+@basic_auth
+def ansible_inventory():
+    data = {}
+    for tag in Tag.find_all():
+        data[tag.name] = {'hosts': [host.name for host in tag.items]}
+    data['_meta'] = {'hostvars': {}}
+    for item in Item.find_all():
+        vars = {}
+        for var in item.to_data()['vars']:
+            vars[var['key']] = var['value']
+        data['_meta']['hostvars'][item.name] = vars
+    ansible_groups = ['linux', 'ansible-managed']
+    return json_response(keep_only(ansible_groups, data))
 
 @melange_api.route('/tag/<name>/', methods=['GET', 'POST', 'DELETE', 'PUT'])
 @session_auth_test
