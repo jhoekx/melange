@@ -4,10 +4,10 @@ import unittest
 
 from flask import url_for
 
+os.environ['MELANGE_CONFIG_MODULE'] = 'melange.config.TestingConfig'
+
 import melange
 from melange import Item, Tag, User, app, db_session
-
-os.environ['MELANGE_CONFIG_MODULE'] = 'melange.config.TestingConfig'
 
 
 def get_auth_headers():
