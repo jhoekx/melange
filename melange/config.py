@@ -26,20 +26,6 @@ class DevelopmentConfig(Config):
     DEBUG = True
     DATABASE_URL = 'sqlite:///melange.db'
     SECRET_KEY = '\xe9\xcdEw\xfd/|\xb0|~\x05\xb3\xa8\x18\x16[\xce\x96N)\x91d\x1d\xe6'
-    PLUGINS = [ 
-        {
-            'module': 'melange.reports',
-            'blueprint': 'reports',
-            'blueprint_url': '/reports',
-        },
-        {
-            'module': 'melange.updates',
-            'blueprint': 'updates',
-            'blueprint_url': '/updates',
-        },
-    ]
-    ANSIBLE_URL = 'http://localhost:5001'
-    ANSIBLE_KEY = 'abcdefgh'
 
 class TestingConfig(Config):
     TESTING = True

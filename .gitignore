@@ -1,7 +1,6 @@
-bin/
-include/
-lib/
-local/
-man/
 *.pyc
 melange.db
+env/
+.vscode/
+nosetests.xml
+.noseids

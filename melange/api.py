@@ -24,14 +24,17 @@ from melange.auth import basic_auth, session_auth_test
 
 melange_api = Blueprint('melange_api', __name__)
 
+
 def json_response(data):
     response = make_response(json.dumps(data), 200)
     response.headers['Content-Type'] = 'application/json'
     return response
 
+
 @melange_api.route('/', methods=['GET'])
 def start():
     return redirect(url_for('melange_api.list_tags'))
+
 
 @melange_api.route('/item/<name>/', methods=['GET', 'PUT', 'DELETE'])
 @session_auth_test
@@ -59,13 +62,15 @@ def show_item(name):
 
     def item_url(item):
         return url_for('melange_api.show_item', name=item.name)
+
     def tag_url(tag):
         return url_for('melange_api.show_tag', name=tag.name)
     data = item.to_data(item_href=item_url, tag_href=tag_url)
 
-    response = make_response( json.dumps(data), 200 )
+    response = make_response(json.dumps(data), 200)
     response.headers['Content-Type'] = 'application/json'
     return response
+
 
 @melange_api.route('/tag/', methods=['GET', 'POST'])
 @session_auth_test
@@ -86,14 +91,17 @@ def list_tags():
             abort(400)
         tag.save()
         response = make_response('', 201)
-        response.headers['Content-Location'] = url_for('melange_api.show_tag',name=tag.name)
+        response.headers['Content-Location'] = url_for(
+            'melange_api.show_tag', name=tag.name)
         return response
 
-    tags = [ {'name':tag.name, 'href':url_for('melange_api.show_tag', name=tag.name)} for tag in Tag.find_all() ]
+    tags = [{'name': tag.name, 'href': url_for(
+        'melange_api.show_tag', name=tag.name)} for tag in Tag.find_all()]
 
-    response = make_response( json.dumps(tags), 200 )
+    response = make_response(json.dumps(tags), 200)
     response.headers['Content-Type'] = 'application/json'
     return response
+
 
 @melange_api.route('/tag_items/', methods=['GET'])
 @session_auth_test
@@ -103,11 +111,12 @@ def tag_items():
         return url_for('melange_api.show_item', name=item.name)
     tags = [tag.to_data(item_href=item_url) for tag in Tag.find_all()]
     for tag in tags:
-        tag['href'] = url_for('melange_api.show_tag',name=tag['name'])
+        tag['href'] = url_for('melange_api.show_tag', name=tag['name'])
 
-    response = make_response( json.dumps(tags), 200 )
+    response = make_response(json.dumps(tags), 200)
     response.headers['Content-Type'] = 'application/json'
     return response
+
 
 def keep_only(groups, data):
     ansible_data = {'_meta': {'hostvars': {}}}
@@ -119,11 +128,13 @@ def keep_only(groups, data):
         if group == '_meta':
             continue
         hosts = group_def['hosts']
-        ansible_data[group] = {'hosts': [host for host in hosts if host in keep]}
+        ansible_data[group] = {
+            'hosts': [host for host in hosts if host in keep]}
     for item, vars in data['_meta']['hostvars'].items():
         if item in keep:
             ansible_data['_meta']['hostvars'][item] = vars
     return ansible_data
+
 
 @melange_api.route('/ansible_inventory/', methods=['GET'])
 @session_auth_test
@@ -140,6 +151,7 @@ def ansible_inventory():
         data['_meta']['hostvars'][item.name] = vars
     ansible_groups = ['linux', 'ansible-managed']
     return json_response(keep_only(ansible_groups, data))
+
 
 @melange_api.route('/tag/<name>/', methods=['GET', 'POST', 'DELETE', 'PUT'])
 @session_auth_test
@@ -167,7 +179,8 @@ def show_tag(name):
         item.add_to(tag)
         item.save()
         response = make_response('', response_code)
-        response.headers['Content-Location'] = url_for('melange_api.show_item',name=item.name)
+        response.headers['Content-Location'] = url_for(
+            'melange_api.show_item', name=item.name)
         return response
 
     if request.method == 'DELETE':
@@ -190,6 +203,6 @@ def show_tag(name):
         return url_for('melange_api.show_item', name=item.name)
     data = tag.to_data(item_href=item_url)
 
-    response = make_response( json.dumps(data), 200 )
+    response = make_response(json.dumps(data), 200)
     response.headers['Content-Type'] = 'application/json'
     return response

@@ -24,6 +24,7 @@ from melange import User
 
 user_auth = Blueprint('user_auth', __name__, template_folder='templates')
 
+
 def session_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -34,6 +35,7 @@ def session_auth(f):
         return f(*args, **kwargs)
     return decorated
 
+
 def session_auth_test(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -42,24 +44,27 @@ def session_auth_test(f):
         return f(*args, **kwargs)
     return decorated
 
+
 def basic_auth(f):
     def check_auth(auth):
         user = User.find(auth.username)
         if not user or not user.authenticate(auth.password):
             return False
         return True
+
     @wraps(f)
     def decorated(*args, **kwargs):
         if hasattr(g, 'authenticated') and g.authenticated:
             return f(*args, **kwargs)
         auth = request.authorization
         if not auth or not check_auth(auth):
-            resp = make_response('Authentication Required',401)
+            resp = make_response('Authentication Required', 401)
             resp.headers['WWW-Authenticate'] = 'Basic realm="Login required"'
             return resp
         g.authenticated = True
         return f(*args, **kwargs)
     return decorated
+
 
 @user_auth.route('/', methods=['GET', 'POST'])
 @session_auth
@@ -76,6 +81,7 @@ def list_users():
     users = User.find_all()
     return render_template('users.html', users=users)
 
+
 @user_auth.route('/user/<name>', methods=['GET', 'POST'])
 @session_auth
 def show_user(name):
@@ -90,6 +96,7 @@ def show_user(name):
             user.save()
     return render_template('user.html', user=user)
 
+
 @user_auth.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -100,6 +107,7 @@ def login():
             session['username'] = user_name
         return redirect(session['url'])
     return render_template('login.html')
+
 
 @user_auth.route('/logout', methods=['POST'])
 def logout():

@@ -1,11 +1,10 @@
 #!/usr/bin/env python
-### Export data in JSON format
+# Export data in JSON format
 
 import json
 import sys
-
 from optparse import OptionParser
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 import requests
 
@@ -15,9 +14,11 @@ parser.add_option('-u', '--user', default=None, dest='user')
 parser.add_option('-p', '--password', default=None, dest='password')
 options, args = parser.parse_args()
 
+
 def error(msg):
     print >>sys.stderr, msg
     sys.exit(1)
+
 
 if not options.url:
     parser.print_help()
@@ -56,10 +57,10 @@ for tag_ref in r.json():
 for item_url in item_urls:
     item_req = s.get(item_url)
     item_data = item_req.json()
-    item_data['vars'] = [ var for var in item_data['vars'] if 'tag' not in var ]
+    item_data['vars'] = [var for var in item_data['vars'] if 'tag' not in var]
     items.append(item_data)
 
-print json.dumps({
+print(json.dumps({
     'tags': tags,
     'items': items,
-})
+}))

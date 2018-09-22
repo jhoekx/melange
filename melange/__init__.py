@@ -20,8 +20,10 @@ import os
 
 from flask import Flask
 
+
 class MelangeException(Exception):
     pass
+
 
 app = Flask('melange')
 app.config.from_object('melange.config.ProductionConfig')
@@ -44,25 +46,9 @@ app.register_blueprint(user_auth, url_prefix='/auth')
 from melange.api import melange_api
 app.register_blueprint(melange_api, url_prefix='/api')
 
+from melange.reports import reports
+app.register_blueprint(reports, url_prefix='/reports')
+
 @app.teardown_request
 def shutdown_session(exception=None):
     db_session.close()
-
-app.config['menu_items'] = []
-app.config['item_plugins'] = []
-app.config['tag_plugins'] = []
-
-for plugin_data in app.config.get('PLUGINS', []):
-    plugin_module = importlib.import_module(plugin_data['module'])
-    if 'blueprint' in plugin_data and 'blueprint_url' in plugin_data:
-        blueprint = getattr(plugin_module, plugin_data['blueprint'])
-        app.register_blueprint(blueprint, url_prefix=plugin_data['blueprint_url'])
-    if hasattr(plugin_module, 'menu_items'):
-        menu_items = getattr(plugin_module, 'menu_items')
-        app.config['menu_items'].append(menu_items)
-    if hasattr(plugin_module, 'item_plugin'):
-        item_plugin = getattr(plugin_module, 'item_plugin')
-        app.config['item_plugins'].append(item_plugin)
-    if hasattr(plugin_module, 'tag_plugin'):
-        tag_plugin = getattr(plugin_module, 'tag_plugin')
-        app.config['tag_plugins'].append(tag_plugin)

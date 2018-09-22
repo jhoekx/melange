@@ -1,14 +1,21 @@
 import base64
-import json
 import os
 import unittest
 
 from flask import url_for
 
+import melange
+from melange import Item, Tag, User, app, db_session
+
 os.environ['MELANGE_CONFIG_MODULE'] = 'melange.config.TestingConfig'
 
-import melange
-from melange import app, db_session, Item, Tag, User
+
+def get_auth_headers():
+    credentials = base64.b64encode(b'api:test').decode()
+    return {
+        'Authorization': f'Basic {credentials}'
+    }
+
 
 class MelangeTestCase(unittest.TestCase):
 
@@ -23,27 +30,27 @@ class MelangeTestCase(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def get_json(self, c, url):
-        return c.get(
-            url,
-            headers={'Authorization': 'Basic %s'%(base64.b64encode('api:test'))},
-        )
+    def get_json(self, test_client, url):
+        return test_client.get(url, headers=get_auth_headers())
 
-    def post_json(self, c, url, data):
-        return c.post(
+    def post_json(self, test_client, url, data):
+        return test_client.post(
             url,
             content_type='application/json',
-            headers={'Authorization': 'Basic %s'%(base64.b64encode('api:test'))},
-            data=json.dumps(data),
+            headers=get_auth_headers(),
+            json=data,
         )
 
-    def put_json(self, c, url, data):
-        return c.put(
+    def put_json(self, test_client, url, data):
+        return test_client.put(
             url,
             content_type='application/json',
-            headers={'Authorization': 'Basic %s'%(base64.b64encode('api:test'))},
-            data=json.dumps(data),
+            headers=get_auth_headers(),
+            json=data,
         )
+
+    def delete_json(self, test_client, url):
+        return test_client.get(url, headers=get_auth_headers())
 
     def test_api_create_tag(self):
         data = {
@@ -51,7 +58,7 @@ class MelangeTestCase(unittest.TestCase):
         }
         with app.test_client() as c:
             rv = self.post_json(c, '/api/tag/', data)
-            print rv
+            print(rv)
         laptop = Tag.find('laptop')
         assert laptop is not None
         assert laptop.name == 'laptop'
@@ -63,7 +70,7 @@ class MelangeTestCase(unittest.TestCase):
         }
         with app.test_client() as c:
             rv = self.post_json(c, '/api/tag/laptop/', data)
-            print rv
+            print(rv)
             assert rv.status_code == 201
         fireflash = Item.find('fireflash')
         assert fireflash is not None
@@ -71,16 +78,25 @@ class MelangeTestCase(unittest.TestCase):
         assert len(fireflash.tags) == 1
         assert fireflash.tags[0].name == 'laptop'
 
+    def test_api_remove_item(self):
+        Tag('laptop').save()
+        data = {'name': 'fireflash'}
+        with app.test_client() as c:
+            rv = self.post_json(c, '/api/tag/laptop/', data)
+            assert rv.status_code == 201
+            rv = self.delete_json(c, '/api/item/fireflash/')
+            assert rv.status_code == 200
+
     def test_api_add_tag(self):
         Item('fireflash').save()
         Tag('laptop').save()
 
         with app.test_client() as c:
             rv = self.get_json(c, '/api/item/fireflash/')
-            data = json.loads(rv.data)
-            data['tags'].append({'name':'laptop'})
+            data = rv.get_json()
+            data['tags'].append({'name': 'laptop'})
             rv = self.put_json(c, '/api/item/fireflash/', data)
-            print rv
+            print(rv)
             assert rv.status_code == 200
         laptop = Tag.find('laptop')
         assert laptop.items[0].name == 'fireflash'
@@ -91,10 +107,10 @@ class MelangeTestCase(unittest.TestCase):
 
         with app.test_client() as c:
             rv = self.get_json(c, '/api/item/home/')
-            data = json.loads(rv.data)
-            data['children'].append({'name':'fireflash'})
+            data = rv.get_json()
+            data['children'].append({'name': 'fireflash'})
             rv = self.put_json(c, '/api/item/home/', data)
-            print rv
+            print(rv)
             assert rv.status_code == 200
         fireflash = Item.find('fireflash')
         home = Item.find('home')
@@ -105,20 +121,20 @@ class MelangeTestCase(unittest.TestCase):
         Item('fireflash').save()
         with app.test_client() as c:
             rv = self.get_json(c, '/api/item/fireflash/')
-            data = json.loads(rv.data)
+            data = rv.get_json()
             data['name'] = 'hood'
             rv = self.put_json(c, '/api/item/fireflash/', data)
-            print rv
+            print(rv)
             assert rv.status_code == 400
 
     def test_api_incorrect_tag_update(self):
         Tag('laptop').save()
         with app.test_client() as c:
             rv = self.get_json(c, '/api/tag/laptop/')
-            data = json.loads(rv.data)
+            data = rv.get_json()
             data['name'] = 'desktop'
             rv = self.put_json(c, '/api/tag/laptop/', data)
-            print rv
+            print(rv)
             assert rv.status_code == 400
 
     def test_api_set_variable(self):
@@ -126,10 +142,10 @@ class MelangeTestCase(unittest.TestCase):
 
         with app.test_client() as c:
             rv = self.get_json(c, '/api/item/fireflash/')
-            data = json.loads(rv.data)
-            data['vars'].append({'key':'hello', 'value':'world'})
+            data = rv.get_json()
+            data['vars'].append({'key': 'hello', 'value': 'world'})
             rv = self.put_json(c, '/api/item/fireflash/', data)
-            print rv
+            print(rv)
             assert rv.status_code == 200
         fireflash = Item.find('fireflash')
         assert fireflash.variables['hello'] == 'world'
@@ -141,10 +157,10 @@ class MelangeTestCase(unittest.TestCase):
 
         with app.test_client() as c:
             rv = self.get_json(c, '/api/item/fireflash/')
-            data = json.loads(rv.data)
-            data['vars'].append({'key':'hello', 'value':'world'})
+            data = rv.get_json()
+            data['vars'].append({'key': 'hello', 'value': 'world'})
             rv = self.put_json(c, '/api/item/fireflash/', data)
-            print rv
+            print(rv)
             assert rv.status_code == 200
         fireflash = Item.find('fireflash')
         assert fireflash.variables['hello'] == 'world'
@@ -157,10 +173,10 @@ class MelangeTestCase(unittest.TestCase):
 
         with app.test_client() as c:
             rv = self.get_json(c, '/api/item/fireflash/')
-            data = json.loads(rv.data)
-            data['vars'] = [{'key':'test', 'value':'one'}]
+            data = rv.get_json()
+            data['vars'] = [{'key': 'test', 'value': 'one'}]
             rv = self.put_json(c, '/api/item/fireflash/', data)
-            print rv
+            print(rv)
             assert rv.status_code == 200
         fireflash = Item.find('fireflash')
         assert len(fireflash.variables) == 1
@@ -172,10 +188,10 @@ class MelangeTestCase(unittest.TestCase):
 
         with app.test_client() as c:
             rv = self.get_json(c, '/api/item/fireflash/')
-            data = json.loads(rv.data)
-            data['vars'] = [{'key':'test', 'value':'two'}]
+            data = rv.get_json()
+            data['vars'] = [{'key': 'test', 'value': 'two'}]
             rv = self.put_json(c, '/api/item/fireflash/', data)
-            print rv
+            print(rv)
             assert rv.status_code == 200
         fireflash = Item.find('fireflash')
         assert fireflash.variables['test'] == 'two'
@@ -189,10 +205,10 @@ class MelangeTestCase(unittest.TestCase):
 
         with app.test_client() as c:
             rv = self.get_json(c, '/api/tag/laptop/')
-            data = json.loads(rv.data)
-            data['vars']['test']= 'two'
+            data = rv.get_json()
+            data['vars']['test'] = 'two'
             rv = self.put_json(c, '/api/tag/laptop/', data)
-            print rv
+            print(rv)
             assert rv.status_code == 200
         fireflash = Item.find('fireflash')
         laptop = Tag.find('laptop')
@@ -208,11 +224,11 @@ class MelangeTestCase(unittest.TestCase):
 
         with app.test_client() as c:
             rv = self.get_json(c, '/api/item/fireflash/')
-            data = json.loads(rv.data)
-            print data
-            data['vars'] = [{'key':'test', 'value':'two'}]
+            data = rv.get_json()
+            print(data)
+            data['vars'] = [{'key': 'test', 'value': 'two'}]
             rv = self.put_json(c, '/api/item/fireflash/', data)
-            print rv
+            print(rv)
             assert rv.status_code == 200
         fireflash = Item.find('fireflash')
         laptop = Tag.find('laptop')
@@ -229,9 +245,9 @@ class MelangeTestCase(unittest.TestCase):
 
         with app.test_client() as c:
             rv = self.get_json(c, '/api/ansible_inventory/')
-            data = json.loads(rv.data)
+            data = rv.get_json()
             assert rv.status_code == 200
-            print data
+            print(data)
             assert data == {
                 'linux': {'hosts': ['fireflash']},
                 '_meta': {'hostvars': {'fireflash': {'test': 'one'}}}
@@ -257,9 +273,9 @@ class MelangeTestCase(unittest.TestCase):
 
         with app.test_client() as c:
             rv = self.get_json(c, '/api/ansible_inventory/')
-            data = json.loads(rv.data)
+            data = rv.get_json()
             assert rv.status_code == 200
-            print data
+            print(data)
             assert data == {
                 'linux': {'hosts': ['fireflash']},
                 'ansible-managed': {'hosts': ['mole']},
@@ -267,6 +283,7 @@ class MelangeTestCase(unittest.TestCase):
                 'multiple': {'hosts': ['fireflash']},
                 '_meta': {'hostvars': {'fireflash': {}, 'mole': {}}}
             }
+
 
 if __name__ == '__main__':
     unittest.main()

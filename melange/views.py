@@ -16,13 +16,14 @@
 # along with Melange.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
-
 from datetime import datetime, timedelta
 
-from flask import abort, g, redirect, render_template, request, url_for, make_response
+from flask import (abort, g, make_response, redirect, render_template, request,
+                   url_for)
 
-from melange import app, Item, Tag, Log
+from melange import Item, Log, Tag, app
 from melange.auth import session_auth
+
 
 def update_variables(item, request):
     if "var-add" in request.form:
@@ -31,7 +32,7 @@ def update_variables(item, request):
         if var_type == 'List':
             item.set_variable(var_key, [''])
         elif var_type == 'Map':
-            item.set_variable(var_key, {'':''})
+            item.set_variable(var_key, {'': ''})
         else:
             item.set_variable(var_key, '')
         item.save()
@@ -59,7 +60,8 @@ def update_variables(item, request):
     elif 'var-list-remove' in request.form:
         k = request.form['var-key']
         items = item.variables[k]
-        to_remove = sorted([ int(index) for index in request.form.getlist('var-select[]') ], reverse=True)
+        to_remove = sorted(
+            [int(index) for index in request.form.getlist('var-select[]')], reverse=True)
         for index in to_remove:
             del items[index-1]
         item.set_variable(k, items)
@@ -89,9 +91,11 @@ def update_variables(item, request):
         item.set_variable(key, map)
         item.save()
 
+
 @app.route("/")
 def show_frontpage():
     return render_template('front.html', tags=Tag.find_all())
+
 
 @app.route("/tag/", methods=["GET", "POST"])
 @session_auth
@@ -104,6 +108,7 @@ def list_tags():
             tag.save()
     tags = Tag.find_all()
     return render_template('tags.html', tags=tags)
+
 
 @app.route("/tag/<name>/", methods=["GET", "POST"])
 @session_auth
@@ -118,8 +123,8 @@ def show_tag(name):
             update_variables(tag, request)
 
     var_list = []
-    for k,v in tag.variables.items():
-        if type(v) in [str, unicode, int]:
+    for k, v in tag.variables.items():
+        if type(v) in [str, int]:
             var_type = 'Text'
         elif type(v) == list:
             var_type = 'List'
@@ -131,6 +136,7 @@ def show_tag(name):
             'type': var_type,
         })
     return render_template("tag.html", tag=tag, var_list=var_list)
+
 
 @app.route("/item/", methods=["GET", "POST"])
 @session_auth
@@ -148,6 +154,7 @@ def list_items():
         return redirect(url_for('show_item', name=item.name))
     items = Item.find_all()
     return render_template('items.html', items=items)
+
 
 @app.route("/item/<name>/", methods=["GET", "POST", "DELETE"])
 @session_auth
@@ -186,7 +193,7 @@ def show_item(name):
     var_list = []
     for var in item.to_data()['vars']:
         v = var['value']
-        if type(v) in [str, unicode, int]:
+        if type(v) in [str, int]:
             var['type'] = 'Text'
         elif type(v) == list:
             var['type'] = 'List'
@@ -194,10 +201,12 @@ def show_item(name):
             var['type'] = 'Map'
         var_list.append(var)
 
-    tag_names = [ tag.name for tag in item.tags ]
-    available_tags = [ tag.name for tag in Tag.find_all() if tag.name not in tag_names ]
+    tag_names = [tag.name for tag in item.tags]
+    available_tags = [tag.name for tag in Tag.find_all()
+                      if tag.name not in tag_names]
 
     return render_template('item.html', item=item, var_list=var_list, available_tags=available_tags)
+
 
 @app.route('/log/')
 @session_auth
@@ -211,6 +220,6 @@ def show_log():
     if start:
         start = datetime.strptime(start, '%Y-%m-%d')
     else:
-        start =  end - timedelta(weeks=3)
+        start = end - timedelta(weeks=3)
     log = Log.find_range(start, end+timedelta(days=1))
     return render_template('log.html', log=log, start=start, end=end)

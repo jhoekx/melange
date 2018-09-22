@@ -15,13 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-### Script to transfer inventory information from one host to another
+# Script to transfer inventory information from one host to another
 
 import json
 import sys
-
 from optparse import OptionParser
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 import requests
 
@@ -33,9 +32,11 @@ parser.add_option('-f', '--from', default=None, dest='orig')
 parser.add_option('-t', '--to', default=None, dest='to')
 options, args = parser.parse_args()
 
+
 def error(msg):
-    print >>sys.stderr, msg
+    print(msg, file=sys.stderr)
     sys.exit(1)
+
 
 if not options.orig:
     error('--from missing')
@@ -43,7 +44,7 @@ if not options.to:
     error('--to missing')
 
 s = requests.Session()
-s.headers.update({'Content-Type':'application/json'})
+s.headers.update({'Content-Type': 'application/json'})
 
 r = s.get(options.url)
 if r.status_code == 401:
@@ -53,22 +54,23 @@ if r.status_code == 401:
 
     r = s.get(options.url)
 
-r = s.get( urljoin(options.url, '/api/item/%s/'%(options.orig)) )
+r = s.get(urljoin(options.url, '/api/item/%s/' % (options.orig)))
 if r.status_code > 400:
-    error('Unable to find host %s'%(options.orig))
+    error('Unable to find host %s' % (options.orig))
 
 orig_data = r.json()
 
-r = s.get( urljoin(options.url, '/api/item/%s/'%(options.to)) )
+r = s.get(urljoin(options.url, '/api/item/%s/' % (options.to)))
 if r.status_code > 400:
-    error('Unable to find host %s'%(options.to))
+    error('Unable to find host %s' % (options.to))
 
 orig_data['name'] = options.to
 
-r = s.put( urljoin(options.url, '/api/item/%s/'%(options.to)), data=json.dumps(orig_data) )
+r = s.put(urljoin(options.url, '/api/item/%s/' %
+                  (options.to)), data=json.dumps(orig_data))
 if r.status_code > 400:
     error('Failed to update data of new system')
 
-r = s.delete( urljoin(options.url, '/api/item/%s/'%(options.orig)) )
+r = s.delete(urljoin(options.url, '/api/item/%s/' % (options.orig)))
 if r.status_code > 400:
     error('Failed to remove old system.')
