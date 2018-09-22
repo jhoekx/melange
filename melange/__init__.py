@@ -31,6 +31,8 @@ if 'MELANGE_CONFIG_MODULE' in os.environ:
     app.config.from_object(os.environ.get('MELANGE_CONFIG_MODULE'))
 elif 'MELANGE_CONFIG_FILE' in os.environ:
     app.config.from_envvar('MELANGE_CONFIG_FILE')
+elif 'MELANGE_CONFIG_ENVIRON' in os.environ:
+    app.config.from_object('melange.config.EnvironmentConfig')
 else:
     app.config.from_object('melange.config.DevelopmentConfig')
 

@@ -45,6 +45,20 @@ Browsing to the Melange server will initially show a blank screen with a menu
 bar. Add a new tag by clicking on 'Tags' in the menu bar. You can create systems
 directly from the tag by adding them as a child.
 
+Deploying
+---------
+
+Melange can be deployed in a docker container.
+The default configuration uses SQLite.
+The docker container expects a volume mount at `/var/lib/melange` to store the database.
+
+```bash
+$ docker build -t melange .
+$ docker run --rm -p 8000:8000 -v $(pwd)/db:/var/lib/melange -it melange
+```
+
+When using other databases than SQLite, the container will not initialize the database.
+
 Configuration
 -------------
 

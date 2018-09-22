@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Melange.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
 class Config(object):
     DEBUG = False
     TESTING = False
@@ -31,3 +33,7 @@ class TestingConfig(Config):
     TESTING = True
     DATABASE_URL = 'sqlite://'
     SECRET_KEY = '\xe9\xcdEw\xfd/|\xb0|~\x05\xb3\xa8\x18\x16[\xce\x96N)\x91d\x1d\xe6'
+
+class EnvironmentConfig(Config):
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+    SECRET_KEY = os.environ.get('SECRET_KEY')

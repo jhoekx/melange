@@ -1,6 +1,7 @@
 *.pyc
 melange.db
 env/
+dist/
 .vscode/
 nosetests.xml
 .noseids
