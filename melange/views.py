@@ -93,6 +93,7 @@ def update_variables(item, request):
 
 
 @app.route("/")
+@session_auth
 def show_frontpage():
     return render_template('front.html', tags=Tag.find_all())
 

@@ -3,8 +3,7 @@ Melange
 
 [![Build Status](https://travis-ci.org/jhoekx/melange.svg?branch=master)](https://travis-ci.org/jhoekx/melange)
 
-A simple Configuration Management Database with plugin framework to show your
-favourite tools in one central place.
+A simple Configuration Management Database.
 
 Getting Started
 ---------------
