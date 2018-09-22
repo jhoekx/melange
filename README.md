@@ -16,7 +16,7 @@ Start the development version:
 ```bash
 $ git clone https://github.com/jhoekx/melange.git
 $ cd melange/
-python -m venv env
+$ python -m venv env
 $ source env/bin/activate
 (env) $ pip install -r requirements.txt
 (env) $ nosetests tests/
