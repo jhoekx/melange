@@ -148,6 +148,22 @@ class MelangeTestCase(unittest.TestCase):
         assert i3.children == [i1, i2]
         assert i1.parents == [i3]
 
+    def test_data_variable_in_multiple_tags(self):
+        item = Item('firefly')
+        item.set_variable('hello', 'firefly')
+        linux = Tag('linux')
+        linux.set_variable('hello', 'linux')
+        laptop = Tag('laptop')
+        laptop.set_variable('hello', 'laptop')
+        item.add_to(linux)
+        item.add_to(laptop)
+        item.save()
+
+        data = item.to_data()
+        hello = [entry['value'] for entry in data['vars'] if entry['key'] == 'hello']
+        assert len(hello) == 1
+        assert hello[0] == 'firefly'
+
 class MelangeUserTestCase(unittest.TestCase):
     def setUp(self):
         melange.database.drop_db()

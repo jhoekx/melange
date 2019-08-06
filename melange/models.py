@@ -156,6 +156,7 @@ class Item(Base, VariableMixin, CompatMixin, LogMixin):
                     var['href'] = tag_href(tag)
                 if k in var_keys:
                     vars.remove(var_keys[k])
+                    var_keys[k] = var
                 else:
                     var_keys[k] = var
                 vars.append(var)
